@@ -1,0 +1,63 @@
+
+import requests
+import sys
+
+# Fix UnicodeEncodeError for Windows Command Prompt
+sys.stdout.reconfigure(encoding='utf-8')
+
+# Function to fetch exchange rates
+def get_exchange_rate(base_currency, target_currency):
+    API_KEY = "32533993b6f264eb0b01f8d4"  # Replace with your actual API key
+    url = f"https://v6.exchangerate-api.com/v6/{API_KEY}/latest/{base_currency}"
+    
+    try:
+        response = requests.get(url)
+        data = response.json()
+        
+        if response.status_code != 200:
+            print("❌ Error:", data.get("error-type", "Unknown error"))
+            return None
+        
+        exchange_rate = data["conversion_rates"].get(target_currency)
+        
+        if exchange_rate:
+            return exchange_rate
+        else:
+            print("❌ Invalid target currency!")
+            return None
+
+    except requests.exceptions.RequestException as e:
+        print("❌ Error fetching data:", e)
+        return None
+
+# Function to convert currency
+def convert_currency():
+    print("\n🌍 Welcome to CLI Currency Converter 🌍\n")
+    
+    while True:
+        base_currency = input("Enter base currency (e.g., USD, EUR, INR): ").upper()
+        target_currency = input("Enter target currency (e.g., USD, EUR, INR): ").upper()
+        
+        try:
+            amount = float(input(f"Enter amount in {base_currency}: "))
+        except ValueError:
+            print("❌ Invalid amount! Please enter a number.\n")
+            continue
+        
+        exchange_rate = get_exchange_rate(base_currency, target_currency)
+        
+        if exchange_rate:
+            converted_amount = amount * exchange_rate
+            print(f"\n💱 {amount} {base_currency} = {converted_amount:.2f} {target_currency}\n")
+        else:
+            print("❌ Failed to retrieve exchange rate. Please check the currencies and try again.\n")
+        
+        # Ask if the user wants another conversion
+        retry = input("Do you want to convert another currency? (yes/no): ").strip().lower()
+        if retry != 'yes':
+            print("\n✅ Thank you for using the Currency Converter! Goodbye! ")
+            break
+
+# Run the converter
+if __name__ == "__main__":
+    convert_currency()
